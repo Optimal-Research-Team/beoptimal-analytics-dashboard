@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>beOptimal · Clinic Analytics</title>
+<meta name="description" content="beOptimal Clinic Analytics Dashboard — supply & demand at a glance." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #07090d;
+    --bg-2: #0b0e14;
+    --panel: rgba(20, 24, 33, 0.72);
+    --panel-solid: #11151d;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --text: #eef1f6;
+    --text-dim: #9aa3b2;
+    --text-faint: #646d7d;
+
+    --green: #2fd07a;
+    --green-bg: rgba(47, 208, 122, 0.12);
+    --amber: #f5b948;
+    --amber-bg: rgba(245, 185, 72, 0.12);
+    --red: #ff5d6c;
+    --red-bg: rgba(255, 93, 108, 0.12);
+    --accent: #6ea8ff;
+    --accent-2: #a78bfa;
+
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 60px -28px rgba(0,0,0,0.85);
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(1200px 700px at 12% -8%, rgba(110, 168, 255, 0.10), transparent 55%),
+      radial-gradient(1100px 650px at 95% 0%, rgba(167, 139, 250, 0.09), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+    min-height: 100vh;
+    letter-spacing: -0.011em;
+  }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px 96px; }
+
+  /* ---------- Top bar ---------- */
+  header.topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    background: rgba(7, 9, 13, 0.72);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto; padding: 16px 28px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; font-weight: 800; color: #07090d;
+    font-size: 17px; box-shadow: 0 6px 18px -6px rgba(110,168,255,0.6);
+  }
+  .brand-name { font-weight: 700; font-size: 15.5px; letter-spacing: -0.02em; }
+  .brand-sub { font-size: 12px; color: var(--text-faint); font-weight: 500; }
+
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .live-dot {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--text-dim); font-weight: 500;
+  }
+  .live-dot::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 0 0 rgba(47,208,122,0.5);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(47,208,122,0.45); }
+    70% { box-shadow: 0 0 0 7px rgba(47,208,122,0); }
+    100% { box-shadow: 0 0 0 0 rgba(47,208,122,0); }
+  }
+
+  /* date filter */
+  .date-filter {
+    display: flex; align-items: center; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); border-radius: 11px; padding: 3px;
+  }
+  .date-filter button {
+    font: inherit; font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+    background: transparent; border: 0; padding: 7px 13px; border-radius: 8px;
+    cursor: pointer; transition: all 0.18s ease; letter-spacing: -0.01em;
+  }
+  .date-filter button:hover { color: var(--text); }
+  .date-filter button.active {
+    background: rgba(255,255,255,0.09); color: var(--text);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset;
+  }
+
+  /* ---------- Section scaffolding ---------- */
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin: 40px 2px 18px; }
+  .section-head h2 {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .section-head .q {
+    font-size: 13px; color: var(--text-faint); font-weight: 500;
+  }
+  .section-head .q b { color: var(--text); font-weight: 600; }
+
+  .page-title { margin: 34px 2px 4px; }
+  .page-title h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.03em; }
+  .page-title p { color: var(--text-dim); font-size: 14px; margin-top: 5px; }
+
+  /* ---------- Supply hero (Band 1) ---------- */
+  .supply-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+  }
+  .np-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 20px 18px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    position: relative; overflow: hidden; transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .np-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+  .np-card .topline { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .np-name { font-weight: 650; font-size: 14.5px; letter-spacing: -0.02em; }
+  .np-role { font-size: 11px; color: var(--text-faint); font-weight: 500; margin-top: 1px; }
+  .badge {
+    font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+    letter-spacing: 0.02em; text-transform: uppercase;
+  }
+  .badge.green { color: var(--green); background: var(--green-bg); }
+  .badge.amber { color: var(--amber); background: var(--amber-bg); }
+  .badge.red { color: var(--red); background: var(--red-bg); }
+
+  .gauge { position: relative; width: 132px; height: 132px; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .center {
+    position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+  }
+  .gauge .pct { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  .gauge .pct-label { font-size: 10.5px; color: var(--text-faint); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-top: -1px; }
+
+  .np-foot {
+    font-size: 12.5px; color: var(--text-dim); text-align: center; font-weight: 500;
+    padding-top: 4px; border-top: 1px solid var(--border); width: 100%;
+  }
+  .np-foot b { color: var(--text); font-weight: 700; font-family: var(--mono); }
+  .np-foot.warn b { color: var(--amber); }
+  .np-foot.crit b { color: var(--red); }
+
+  /* ---------- Demand hero (Band 2) ---------- */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 22px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .kpi:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+  .kpi::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2)); opacity: 0.55;
+  }
+  .kpi .label { font-size: 12.5px; color: var(--text-dim); font-weight: 550; }
+  .kpi .value {
+    font-family: var(--mono); font-size: 42px; font-weight: 700; letter-spacing: -0.03em;
+    margin: 12px 0 8px; line-height: 1;
+  }
+  .kpi .delta {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
+    padding: 4px 9px; border-radius: 999px;
+  }
+  .kpi .delta.good { color: var(--green); background: var(--green-bg); }
+  .kpi .delta.bad { color: var(--red); background: var(--red-bg); }
+  .kpi .delta .vs { color: var(--text-faint); font-weight: 500; }
+  .kpi .spark { position: absolute; right: 18px; bottom: 16px; opacity: 0.5; }
+
+  /* ---------- Needs attention strip ---------- */
+  .attention {
+    margin-top: 18px; display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(90deg, rgba(255,93,108,0.10), rgba(255,93,108,0.03));
+    border: 1px solid rgba(255,93,108,0.28); border-radius: 14px; padding: 14px 18px;
+  }
+  .attention .ico {
+    flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--red-bg);
+    display: grid; place-items: center; color: var(--red); font-weight: 800; font-size: 15px;
+  }
+  .attention .label { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--red); }
+  .attention .items { font-size: 13.5px; color: var(--text); font-weight: 500; }
+  .attention .items .sep { color: var(--text-faint); margin: 0 9px; }
+  .attention .items b { font-weight: 700; }
+
+  /* ---------- Cards / panels below the fold ---------- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .panel h3 { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+  .panel .sub { font-size: 12.5px; color: var(--text-faint); font-weight: 500; margin-top: 3px; }
+  .panel-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+  .legend { display: flex; gap: 14px; align-items: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-dim); font-weight: 500; }
+  .legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+
+  /* funnel bars */
+  .funnel-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .funnel-row:last-child { margin-bottom: 0; }
+  .funnel-label { width: 168px; flex: none; font-size: 13px; font-weight: 550; color: var(--text-dim); }
+  .funnel-track { flex: 1; height: 30px; background: rgba(255,255,255,0.035); border-radius: 8px; overflow: hidden; position: relative; }
+  .funnel-fill {
+    height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 12px;
+    font-family: var(--mono); font-size: 13px; font-weight: 700; color: #07090d;
+    background: linear-gradient(90deg, var(--accent), #8bb8ff);
+  }
+  .funnel-conv { width: 64px; flex: none; text-align: right; font-size: 12.5px; color: var(--text-dim); font-weight: 600; font-family: var(--mono); }
+
+  /* simple vertical bar chart */
+  .bars { display: flex; align-items: flex-end; gap: 10px; height: 180px; padding-top: 8px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .bar { width: 100%; max-width: 38px; border-radius: 7px 7px 3px 3px; background: linear-gradient(180deg, var(--accent), rgba(110,168,255,0.35)); transition: height 0.3s ease; position: relative; }
+  .bar.alt { background: linear-gradient(180deg, var(--accent-2), rgba(167,139,250,0.35)); }
+  .bar-val { font-family: var(--mono); font-size: 11.5px; font-weight: 600; color: var(--text-dim); }
+  .bar-x { font-size: 11px; color: var(--text-faint); font-weight: 500; }
+
+  /* line chart wrapper */
+  .chart-svg { width: 100%; height: auto; display: block; }
+  .line-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .line-legend span { font-size: 11.5px; color: var(--text-dim); font-weight: 550; display: inline-flex; align-items: center; gap: 6px; }
+  .line-legend i { width: 14px; height: 3px; border-radius: 2px; }
+
+  /* histogram */
+  .hist { display: flex; align-items: flex-end; gap: 8px; height: 160px; }
+  .hist-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; height: 100%; justify-content: flex-end; }
+  .hist-bar { width: 100%; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #3a7bd9, rgba(58,123,217,0.3)); }
+  .hist-x { font-size: 10.5px; color: var(--text-faint); font-weight: 500; }
+  .stat-row { display: flex; gap: 26px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .stat { }
+  .stat .n { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+  .stat .k { font-size: 11px; color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+  /* revenue rows */
+  .rev-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .rev-row:last-child { border-bottom: 0; }
+  .rev-name { font-size: 13.5px; font-weight: 550; }
+  .rev-name span { display: block; font-size: 11.5px; color: var(--text-faint); font-weight: 500; margin-top: 1px; }
+  .rev-val { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+  .big-num { font-family: var(--mono); font-size: 38px; font-weight: 700; letter-spacing: -0.03em; }
+  .big-num-sub { font-size: 13px; color: var(--text-dim); font-weight: 500; margin-top: 6px; }
+
+  footer {
+    margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    font-size: 12px; color: var(--text-faint); font-weight: 500;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  .mock-pill { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--amber); background: var(--amber-bg); padding: 4px 9px; border-radius: 999px; }
+
+  @media (max-width: 1080px) {
+    .supply-grid { grid-template-columns: repeat(3, 1fr); }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .supply-grid { grid-template-columns: repeat(2, 1fr); }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .topbar-inner { flex-wrap: wrap; }
+    .funnel-label { width: 110px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">b</div>
+      <div>
+        <div class="brand-name">beOptimal Analytics</div>
+        <div class="brand-sub">Clinic operations · Longevity &amp; Menopause</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="live-dot">Synced 4 min ago</span>
+      <div class="date-filter" id="dateFilter">
+        <button data-range="week">This week</button>
+        <button data-range="8w" class="active">Trailing 8 wks</button>
+        <button data-range="qtr">Quarter</button>
+        <button data-range="ytd">YTD</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="page-title">
+    <h1>Clinic at a glance</h1>
+    <p>Two questions, answered before you scroll — are we full, and is the funnel healthy?</p>
+  </div>
+
+  <!-- ====================== BAND 1 — SUPPLY ====================== -->
+  <div class="section-head">
+    <h2>Supply</h2>
+    <span class="q">“<b>Are we full?</b>” — clinician capacity &amp; weeks to capacity</span>
+  </div>
+
+  <div class="supply-grid" id="supplyGrid"><!-- injected --></div>
+
+  <!-- ====================== BAND 2 — DEMAND ====================== -->
+  <div class="section-head">
+    <h2>Demand</h2>
+    <span class="q">“<b>Is the funnel healthy?</b>” — top-of-funnel &amp; conversion vs last period</span>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"><!-- injected --></div>
+
+  <!-- ====================== NEEDS ATTENTION ====================== -->
+  <div class="attention" id="attention">
+    <div class="ico">!</div>
+    <div>
+      <div class="label">Needs attention</div>
+      <div class="items">
+        <b>Penton at 94% capacity</b> — ~1 week to full
+        <span class="sep">·</span>
+        <b>Oostwoud at 91%</b> (longevity + menopause load)
+        <span class="sep">·</span>
+        <b>30-day churn up 40%</b> vs last month
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== FUNNEL DETAIL ====================== -->
+  <div class="section-head">
+    <h2>Funnel detail</h2>
+    <span class="q">Longevity acquisition — trailing 8 weeks</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Longevity funnel</h3>
+          <div class="sub">Stage-to-stage conversion · last 8 weeks</div>
+        </div>
+      </div>
+      <div id="funnel"><!-- injected --></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>New members by source</h3>
+          <div class="sub">Attribution · last 8 weeks</div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>New members</span>
+        </div>
+      </div>
+      <div class="bars" id="sourceBars"><!-- injected --></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Paid registrations</h3>
+          <div class="sub">Per week · longevity + menopause</div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>Longevity</span>
+          <span><i style="background:var(--accent-2)"></i>Menopause</span>
+        </div>
+      </div>
+      <div class="bars" id="regBars"><!-- injected --></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Info sessions &amp; intros</h3>
+          <div class="sub">Top-of-funnel volume · per week</div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>Info sessions</span>
+          <span><i style="background:var(--accent-2)"></i>Intros</span>
+        </div>
+      </div>
+      <div class="bars" id="introBars"><!-- injected --></div>
+    </div>
+  </div>
+
+  <!-- ====================== CAPACITY DETAIL ====================== -->
+  <div class="section-head">
+    <h2>Capacity detail</h2>
+    <span class="q">Booking lead-time &amp; consumed-care distribution</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Booking lead time per NP</h3>
+          <div class="sub">Days booked ahead · rising = tightening supply</div>
+        </div>
+      </div>
+      <div id="leadChart"></div>
+      <div class="line-legend" id="leadLegend"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Visits per member · per month</h3>
+          <div class="sub">Consumed-care distribution (NP visits only)</div>
+        </div>
+      </div>
+      <div class="hist" id="hist"></div>
+      <div class="stat-row">
+        <div class="stat"><div class="n">1.8</div><div class="k">Avg / member</div></div>
+        <div class="stat"><div class="n">2.0</div><div class="k">Median</div></div>
+        <div class="stat"><div class="n">6</div><div class="k">Max</div></div>
+        <div class="stat"><div class="n">312h</div><div class="k">NP hours / mo</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== REVENUE ====================== -->
+  <div class="section-head">
+    <h2>Revenue</h2>
+    <span class="q">Lifetime value &amp; upcoming renewals</span>
+  </div>
+
+  <div class="grid-3">
+    <div class="panel" style="grid-column: span 2">
+      <div class="panel-head">
+        <div>
+          <h3>Average LTV by program</h3>
+          <div class="sub">Succeeded payments − refunds, per enrolled member</div>
+        </div>
+      </div>
+      <div id="ltvRows"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Renewal value</h3>
+          <div class="sub">Next 30 days · 100% retention</div>
+        </div>
+      </div>
+      <div style="padding-top:8px">
+        <div class="big-num" style="color:var(--green)">$148.2k</div>
+        <div class="big-num-sub">Across <b>92</b> memberships renewing</div>
+      </div>
+      <div style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border)">
+        <div class="big-num" style="font-size:30px">$132.0k</div>
+        <div class="big-num-sub">Churn-adjusted (−11% heuristic)</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>beOptimal Clinic Analytics · Supabase → Metabase · PRD Draft v2 — <a href="https://github.com/Optimal-Research-Team/beoptimal-analytics-dashboard/blob/main/PRD.md">read the full PRD →</a></div>
+    <div><span class="mock-pill">Static UX mockup · representative data</span></div>
+  </footer>
+
+</div>
+
+<script>
+  // ---------- Mock data (representative; mirrors PRD §8 design intent) ----------
+  const NPS = [
+    { name: "Penton",   role: "NP · Longevity",            pct: 94, weeks: 1,  tone: "red" },
+    { name: "Oostwoud", role: "NP · Longevity + Menopause", pct: 91, weeks: 2,  tone: "red" },
+    { name: "Dufour",   role: "NP · Longevity",            pct: 78, weeks: 6,  tone: "amber" },
+    { name: "Xu",       role: "NP · Longevity",            pct: 52, weeks: 14, tone: "green" },
+    { name: "Santos",   role: "NP · Longevity (new hire)", pct: 41, weeks: 22, tone: "green" },
+  ];
+  const TONE = { green: "var(--green)", amber: "var(--amber)", red: "var(--red)" };
+  const TONE_LABEL = { green: "Healthy", amber: "Watch", red: "Act now" };
+
+  const KPIS = [
+    { label: "Info sessions · this week",    value: "24", delta: "+12%", dir: "good", vs: "vs last week" },
+    { label: "Intros booked · this week",    value: "17", delta: "+8%",  dir: "good", vs: "vs last week" },
+    { label: "Paid registrations · MTD",     value: "31", delta: "−6%",  dir: "bad",  vs: "vs last month" },
+    { label: "Churned members · 30 days",    value: "5",  delta: "+40%", dir: "bad",  vs: "vs last month" },
+  ];
+
+  const FUNNEL = [
+    { label: "Info sessions",      n: 186, conv: "—" },
+    { label: "Intros (phone/IP)",  n: 132, conv: "71%" },
+    { label: "Intro + intake",     n: 94,  conv: "71%" },
+    { label: "Paid registrations", n: 58,  conv: "62%" },
+  ];
+
+  const SOURCES = [
+    { x: "Meta",     n: 22 },
+    { x: "Google",   n: 17 },
+    { x: "Referral", n: 13 },
+    { x: "Organic",  n: 6 },
+  ];
+
+  const REGS = [ // [longevity, menopause] per week
+    [4,2],[5,3],[6,2],[5,4],[7,3],[6,5],[8,4],[7,5],
+  ];
+  const INTROS = [ // [info, intros]
+    [19,12],[22,14],[18,11],[24,15],[21,13],[26,17],[23,16],[24,17],
+  ];
+  const WEEKS = ["W1","W2","W3","W4","W5","W6","W7","Now"];
+
+  // booking lead time per NP, days, over 8 weeks
+  const LEAD = {
+    "Penton":   { color: "#ff5d6c", d: [9,11,12,14,15,17,19,21] },
+    "Oostwoud": { color: "#f5b948", d: [8,9,11,12,13,14,16,18] },
+    "Dufour":   { color: "#6ea8ff", d: [6,7,7,8,9,9,10,11] },
+    "Xu":       { color: "#2fd07a", d: [4,4,5,5,4,6,5,6] },
+    "Santos":   { color: "#a78bfa", d: [2,2,3,3,4,4,5,5] },
+  };
+
+  const HIST = [ // visits/member/month distribution
+    { x: "0", n: 18 }, { x: "1", n: 96 }, { x: "2", n: 142 },
+    { x: "3", n: 74 }, { x: "4", n: 31 }, { x: "5", n: 11 }, { x: "6+", n: 4 },
+  ];
+
+  const LTV = [
+    { name: "Longevity Membership Core", note: "subscription · recurring",  val: 4820, pct: 100 },
+    { name: "Enhanced Care (legacy)",    note: "subscription · recurring",  val: 5390, pct: 100 },
+    { name: "Women's Hormone Health",    note: "protocol · monthly",        val: 2140, pct: 44 },
+    { name: "À-la-carte + add-ons",      note: "one-time",                  val: 760,  pct: 16 },
+  ];
+
+  // ---------- Renderers ----------
+  function gaugeSVG(pct, color) {
+    const r = 54, c = 2 * Math.PI * r, off = c * (1 - pct / 100);
+    return `<svg width="132" height="132" viewBox="0 0 132 132">
+      <circle cx="66" cy="66" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="11"/>
+      <circle cx="66" cy="66" r="${r}" fill="none" stroke="${color}" stroke-width="11"
+        stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"
+        style="filter: drop-shadow(0 0 6px ${color}55)"/>
+    </svg>`;
+  }
+
+  document.getElementById("supplyGrid").innerHTML = NPS.map(n => {
+    const cls = n.pct > 90 ? "crit" : n.pct >= 70 ? "warn" : "";
+    return `<div class="np-card">
+      <div class="topline">
+        <div>
+          <div class="np-name">${n.name}</div>
+          <div class="np-role">${n.role}</div>
+        </div>
+        <span class="badge ${n.tone}">${TONE_LABEL[n.tone]}</span>
+      </div>
+      <div class="gauge">
+        ${gaugeSVG(n.pct, TONE[n.tone])}
+        <div class="center">
+          <div class="pct" style="color:${TONE[n.tone]}">${n.pct}%</div>
+          <div class="pct-label">panel used</div>
+        </div>
+      </div>
+      <div class="np-foot ${cls}">~<b>${n.weeks}</b> ${n.weeks === 1 ? "week" : "weeks"} to capacity</div>
+    </div>`;
+  }).join("");
+
+  const sparkline = (color) => `<svg class="spark" width="60" height="24" viewBox="0 0 60 24">
+    <polyline fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      points="0,18 12,14 24,16 36,9 48,11 60,4"/></svg>`;
+
+  document.getElementById("kpiGrid").innerHTML = KPIS.map(k => {
+    const arrow = k.dir === "good" ? "▲" : "▼";
+    const sparkColor = k.dir === "good" ? "var(--green)" : "var(--red)";
+    return `<div class="kpi">
+      <div class="label">${k.label}</div>
+      <div class="value">${k.value}</div>
+      <span class="delta ${k.dir}">${arrow} ${k.delta} <span class="vs">${k.vs}</span></span>
+      ${sparkline(sparkColor)}
+    </div>`;
+  }).join("");
+
+  const fMax = Math.max(...FUNNEL.map(f => f.n));
+  document.getElementById("funnel").innerHTML = FUNNEL.map(f => `
+    <div class="funnel-row">
+      <div class="funnel-label">${f.label}</div>
+      <div class="funnel-track">
+        <div class="funnel-fill" style="width:${Math.max(18, (f.n / fMax) * 100)}%">${f.n}</div>
+      </div>
+      <div class="funnel-conv">${f.conv}</div>
+    </div>`).join("");
+
+  function simpleBars(el, data, getVals, labels, alt2) {
+    const max = Math.max(...data.flatMap(getVals));
+    el.innerHTML = data.map((d, i) => {
+      const vals = getVals(d);
+      const bars = vals.map((v, j) =>
+        `<div class="bar ${alt2 && j === 1 ? "alt" : ""}" style="height:${(v / max) * 100}%" title="${v}"></div>`
+      ).join("");
+      const total = vals.reduce((a, b) => a + b, 0);
+      return `<div class="bar-col">
+        <div class="bar-val">${total}</div>
+        <div style="display:flex; gap:4px; width:100%; height:100%; align-items:flex-end; justify-content:center">${bars}</div>
+        <div class="bar-x">${labels[i]}</div>
+      </div>`;
+    }).join("");
+  }
+
+  simpleBars(document.getElementById("sourceBars"), SOURCES, d => [d.n], SOURCES.map(s => s.x), false);
+  simpleBars(document.getElementById("regBars"), REGS, d => d, WEEKS, true);
+  simpleBars(document.getElementById("introBars"), INTROS, d => d, WEEKS, true);
+
+  // histogram
+  const hMax = Math.max(...HIST.map(h => h.n));
+  document.getElementById("hist").innerHTML = HIST.map(h => `
+    <div class="hist-col">
+      <div class="bar-val">${h.n}</div>
+      <div class="hist-bar" style="height:${(h.n / hMax) * 100}%"></div>
+      <div class="hist-x">${h.x}</div>
+    </div>`).join("");
+
+  // line chart (booking lead time)
+  (function lineChart() {
+    const W = 560, H = 230, padL = 34, padR = 14, padT = 14, padB = 26;
+    const series = Object.entries(LEAD);
+    const allVals = series.flatMap(([, s]) => s.d);
+    const maxV = Math.ceil(Math.max(...allVals) / 5) * 5;
+    const n = WEEKS.length;
+    const x = i => padL + (i * (W - padL - padR)) / (n - 1);
+    const y = v => padT + (1 - v / maxV) * (H - padT - padB);
+
+    let grid = "";
+    for (let g = 0; g <= maxV; g += 7) {
+      const yy = y(g);
+      grid += `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+               <text x="6" y="${yy + 3}" fill="var(--text-faint)" font-size="9" font-family="JetBrains Mono">${g}d</text>`;
+    }
+    let xlabels = WEEKS.map((w, i) => `<text x="${x(i)}" y="${H - 8}" fill="var(--text-faint)" font-size="9" text-anchor="middle" font-family="Inter">${w}</text>`).join("");
+
+    let lines = series.map(([, s]) => {
+      const pts = s.d.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+      const last = s.d.length - 1;
+      return `<polyline fill="none" stroke="${s.color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" points="${pts}" style="filter:drop-shadow(0 1px 3px ${s.color}40)"/>
+              <circle cx="${x(last)}" cy="${y(s.d[last])}" r="3.4" fill="${s.color}"/>`;
+    }).join("");
+
+    document.getElementById("leadChart").innerHTML =
+      `<svg class="chart-svg" viewBox="0 0 ${W} ${H}">${grid}${lines}${xlabels}</svg>`;
+
+    document.getElementById("leadLegend").innerHTML = series.map(([name, s]) =>
+      `<span><i style="background:${s.color}"></i>${name}</span>`).join("");
+  })();
+
+  // LTV rows
+  const ltvMax = Math.max(...LTV.map(l => l.val));
+  document.getElementById("ltvRows").innerHTML = LTV.map(l => `
+    <div class="rev-row">
+      <div style="flex:1">
+        <div class="rev-name">${l.name}<span>${l.note}</span></div>
+        <div class="funnel-track" style="height:7px; margin-top:9px; max-width:340px">
+          <div class="funnel-fill" style="height:100%; width:${(l.val / ltvMax) * 100}%; background:linear-gradient(90deg,var(--green),#5fe09a)"></div>
+        </div>
+      </div>
+      <div class="rev-val">$${l.val.toLocaleString()}</div>
+    </div>`).join("");
+
+  // date filter (cosmetic — single global control per PRD)
+  const df = document.getElementById("dateFilter");
+  df.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    df.querySelectorAll("button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+  });
+</script>
+</body>
+</html>
