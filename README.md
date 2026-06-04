@@ -18,14 +18,15 @@ This repository contains the **UX mockup** (live, self-contained) and the **Prod
 | File | What it is |
 |---|---|
 | [`PRD.md`](./PRD.md) | Full Product Requirements Document (Draft v2) — data model, metric tiers, capacity model, UX spec, open questions, ID reference |
+| [`tier1_metabase_queries.sql`](./tier1_metabase_queries.sql) | Runnable Metabase native-SQL starter library for every Tier 1 metric, with the §2 conventions (timezone, dirty-status filter, service/type IDs) baked in |
 | [`index.html`](./index.html) | Self-contained UX mockup (no build step) |
 
 ## 🎯 Design intent
 
 The dashboard is built around the principle that **anyone can stop reading after the hero and still have their answer**. Layout, top to bottom:
 
-1. **Supply hero** — one capacity gauge per NP (% of panel used) with a traffic-light color (green `<70%`, amber `70–90%`, red `>90%`) and "~N weeks to capacity."
-2. **Demand hero** — large single-number tiles (info sessions, intros, paid registrations MTD, 30-day churn), each with an inline ▲/▼ comparison vs last period.
+1. **Demand hero** — large single-number tiles (info sessions, intros, paid registrations MTD, 30-day churn), each with an inline ▲/▼ comparison vs last period.
+2. **Supply hero** — one capacity gauge per NP (% of panel used) with a traffic-light color (green `<70%`, amber `70–90%`, red `>90%`) and "~N weeks to capacity."
 3. **Needs-attention strip** — appears only when something is red.
 4. **Funnel detail** — stage-to-stage conversion, registrations, info-session/intro volume, acquisition source.
 5. **Capacity detail** — booking lead-time per NP (the no-Acuity supply proxy) and consumed-care visit distribution.
@@ -50,7 +51,9 @@ Deliberately minimal — big numbers (KPIs), simple bars (counts over time), one
 | Source data | Supabase (Postgres), `public` schema |
 | BI / charting | Metabase |
 | Predictive scores | Python job → `predictions` table, read by Metabase like any other table |
-| Mockup | Static HTML + inline SVG + Inter / JetBrains Mono (no framework, no build) |
+| Mockup | Static HTML + inline SVG (no framework, no build) |
+
+The mockup's palette and type are aligned to the **beOptimal brand**: warm cream `#fffcf7`, deep forest green `#2c4e25`, sage and golden accents, set in **Castoro** (serif display) + **Public Sans** (UI) + **JetBrains Mono** (numerics).
 
 ## 🧱 Key conventions (see PRD §2)
 

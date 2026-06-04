@@ -7,31 +7,36 @@
 <meta name="description" content="beOptimal Clinic Analytics Dashboard — supply & demand at a glance." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Castoro:ital@0;1&family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #07090d;
-    --bg-2: #0b0e14;
-    --panel: rgba(20, 24, 33, 0.72);
-    --panel-solid: #11151d;
-    --border: rgba(255, 255, 255, 0.07);
-    --border-strong: rgba(255, 255, 255, 0.12);
-    --text: #eef1f6;
-    --text-dim: #9aa3b2;
-    --text-faint: #646d7d;
+    /* beOptimal brand palette — forest green on warm cream */
+    --bg: #fffcf7;
+    --bg-2: #f7f2e9;
+    --panel: #ffffff;
+    --panel-solid: #ffffff;
+    --border: rgba(44, 78, 37, 0.12);
+    --border-strong: rgba(44, 78, 37, 0.22);
+    --text: #25241f;
+    --text-dim: #6a655a;
+    --text-faint: #a59e8f;
 
-    --green: #2fd07a;
-    --green-bg: rgba(47, 208, 122, 0.12);
-    --amber: #f5b948;
-    --amber-bg: rgba(245, 185, 72, 0.12);
-    --red: #ff5d6c;
-    --red-bg: rgba(255, 93, 108, 0.12);
-    --accent: #6ea8ff;
-    --accent-2: #a78bfa;
+    --green: #2f9e44;            /* healthy / on-track */
+    --green-bg: rgba(47, 158, 68, 0.12);
+    --amber: #c0860a;            /* watch */
+    --amber-bg: rgba(224, 162, 0, 0.15);
+    --red: #e04652;             /* act now (nods to brand coral) */
+    --red-bg: rgba(224, 70, 82, 0.10);
+
+    --accent: #2c4e25;          /* brand forest green */
+    --accent-light: #3f6b34;
+    --accent-2: #2e8bc0;        /* brand sky — secondary series */
+    --sage: #e2eddf;
 
     --radius: 18px;
     --radius-sm: 12px;
-    --shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 60px -28px rgba(0,0,0,0.85);
+    --shadow: 0 1px 2px rgba(44,78,37,0.05), 0 16px 36px -22px rgba(44,78,37,0.28);
+    --serif: "Castoro", Georgia, "Times New Roman", serif;
     --mono: "JetBrains Mono", ui-monospace, monospace;
   }
 
@@ -40,17 +45,16 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
-    font-feature-settings: "cv11", "ss01", "ss03";
+    font-family: "Public Sans", system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     background:
-      radial-gradient(1200px 700px at 12% -8%, rgba(110, 168, 255, 0.10), transparent 55%),
-      radial-gradient(1100px 650px at 95% 0%, rgba(167, 139, 250, 0.09), transparent 55%),
+      radial-gradient(1200px 700px at 12% -8%, rgba(44, 78, 37, 0.06), transparent 55%),
+      radial-gradient(1100px 650px at 95% 0%, rgba(224, 162, 0, 0.06), transparent 55%),
       var(--bg);
     color: var(--text);
     line-height: 1.45;
     min-height: 100vh;
-    letter-spacing: -0.011em;
+    letter-spacing: -0.006em;
   }
 
   .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px 96px; }
@@ -58,9 +62,9 @@
   /* ---------- Top bar ---------- */
   header.topbar {
     position: sticky; top: 0; z-index: 50;
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    background: rgba(7, 9, 13, 0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    background: rgba(255, 252, 247, 0.82);
     border-bottom: 1px solid var(--border);
   }
   .topbar-inner {
@@ -70,9 +74,10 @@
   .brand { display: flex; align-items: center; gap: 12px; }
   .brand-mark {
     width: 34px; height: 34px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid; place-items: center; font-weight: 800; color: #07090d;
-    font-size: 17px; box-shadow: 0 6px 18px -6px rgba(110,168,255,0.6);
+    background: linear-gradient(150deg, var(--accent-light), var(--accent));
+    display: grid; place-items: center; font-weight: 700; color: #fffcf7;
+    font-size: 19px; font-family: var(--serif);
+    box-shadow: 0 6px 18px -8px rgba(44,78,37,0.7);
   }
   .brand-name { font-weight: 700; font-size: 15.5px; letter-spacing: -0.02em; }
   .brand-sub { font-size: 12px; color: var(--text-faint); font-weight: 500; }
@@ -84,18 +89,18 @@
   }
   .live-dot::before {
     content: ""; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--green); box-shadow: 0 0 0 0 rgba(47,208,122,0.5);
+    background: var(--green); box-shadow: 0 0 0 0 rgba(47,158,68,0.5);
     animation: pulse 2.4s infinite;
   }
   @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(47,208,122,0.45); }
-    70% { box-shadow: 0 0 0 7px rgba(47,208,122,0); }
-    100% { box-shadow: 0 0 0 0 rgba(47,208,122,0); }
+    0% { box-shadow: 0 0 0 0 rgba(47,158,68,0.45); }
+    70% { box-shadow: 0 0 0 7px rgba(47,158,68,0); }
+    100% { box-shadow: 0 0 0 0 rgba(47,158,68,0); }
   }
 
   /* date filter */
   .date-filter {
-    display: flex; align-items: center; background: rgba(255,255,255,0.04);
+    display: flex; align-items: center; background: rgba(44,78,37,0.05);
     border: 1px solid var(--border); border-radius: 11px; padding: 3px;
   }
   .date-filter button {
@@ -103,26 +108,26 @@
     background: transparent; border: 0; padding: 7px 13px; border-radius: 8px;
     cursor: pointer; transition: all 0.18s ease; letter-spacing: -0.01em;
   }
-  .date-filter button:hover { color: var(--text); }
+  .date-filter button:hover { color: var(--accent); }
   .date-filter button.active {
-    background: rgba(255,255,255,0.09); color: var(--text);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset;
+    background: #ffffff; color: var(--accent);
+    box-shadow: 0 1px 2px rgba(44,78,37,0.12);
   }
 
   /* ---------- Section scaffolding ---------- */
   .section-head { display: flex; align-items: baseline; gap: 12px; margin: 40px 2px 18px; }
   .section-head h2 {
-    font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent);
   }
   .section-head .q {
     font-size: 13px; color: var(--text-faint); font-weight: 500;
   }
   .section-head .q b { color: var(--text); font-weight: 600; }
 
-  .page-title { margin: 34px 2px 4px; }
-  .page-title h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.03em; }
-  .page-title p { color: var(--text-dim); font-size: 14px; margin-top: 5px; }
+  .page-title { margin: 38px 2px 4px; }
+  .page-title h1 { font-family: var(--serif); font-size: 36px; font-weight: 400; letter-spacing: -0.01em; color: var(--accent); }
+  .page-title p { color: var(--text-dim); font-size: 14.5px; margin-top: 8px; }
 
   /* ---------- Supply hero (Band 1) ---------- */
   .supply-grid {
@@ -151,8 +156,8 @@
   .gauge .center {
     position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
   }
-  .gauge .pct { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
-  .gauge .pct-label { font-size: 10.5px; color: var(--text-faint); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-top: -1px; }
+  .gauge .pct { font-family: var(--mono); font-size: 27px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .gauge .pct-label { font-size: 9.5px; color: var(--text-faint); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 3px; }
 
   .np-foot {
     font-size: 12.5px; color: var(--text-dim); text-align: center; font-weight: 500;
@@ -191,8 +196,8 @@
   /* ---------- Needs attention strip ---------- */
   .attention {
     margin-top: 18px; display: flex; align-items: center; gap: 14px;
-    background: linear-gradient(90deg, rgba(255,93,108,0.10), rgba(255,93,108,0.03));
-    border: 1px solid rgba(255,93,108,0.28); border-radius: 14px; padding: 14px 18px;
+    background: linear-gradient(90deg, rgba(224,70,82,0.10), rgba(224,70,82,0.02));
+    border: 1px solid rgba(224,70,82,0.28); border-radius: 14px; padding: 14px 18px;
   }
   .attention .ico {
     flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--red-bg);
@@ -221,19 +226,19 @@
   .funnel-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
   .funnel-row:last-child { margin-bottom: 0; }
   .funnel-label { width: 168px; flex: none; font-size: 13px; font-weight: 550; color: var(--text-dim); }
-  .funnel-track { flex: 1; height: 30px; background: rgba(255,255,255,0.035); border-radius: 8px; overflow: hidden; position: relative; }
+  .funnel-track { flex: 1; height: 30px; background: rgba(44,78,37,0.06); border-radius: 8px; overflow: hidden; position: relative; }
   .funnel-fill {
     height: 100%; border-radius: 8px; display: flex; align-items: center; padding-left: 12px;
-    font-family: var(--mono); font-size: 13px; font-weight: 700; color: #07090d;
-    background: linear-gradient(90deg, var(--accent), #8bb8ff);
+    font-family: var(--mono); font-size: 13px; font-weight: 700; color: #fffcf7;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
   }
   .funnel-conv { width: 64px; flex: none; text-align: right; font-size: 12.5px; color: var(--text-dim); font-weight: 600; font-family: var(--mono); }
 
   /* simple vertical bar chart */
   .bars { display: flex; align-items: flex-end; gap: 10px; height: 180px; padding-top: 8px; }
   .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
-  .bar { width: 100%; max-width: 38px; border-radius: 7px 7px 3px 3px; background: linear-gradient(180deg, var(--accent), rgba(110,168,255,0.35)); transition: height 0.3s ease; position: relative; }
-  .bar.alt { background: linear-gradient(180deg, var(--accent-2), rgba(167,139,250,0.35)); }
+  .bar { width: 100%; max-width: 38px; border-radius: 7px 7px 3px 3px; background: linear-gradient(180deg, var(--accent), rgba(63,107,52,0.45)); transition: height 0.3s ease; position: relative; }
+  .bar.alt { background: linear-gradient(180deg, var(--accent-2), rgba(46,139,192,0.4)); }
   .bar-val { font-family: var(--mono); font-size: 11.5px; font-weight: 600; color: var(--text-dim); }
   .bar-x { font-size: 11px; color: var(--text-faint); font-weight: 500; }
 
@@ -246,7 +251,7 @@
   /* histogram */
   .hist { display: flex; align-items: flex-end; gap: 8px; height: 160px; }
   .hist-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; height: 100%; justify-content: flex-end; }
-  .hist-bar { width: 100%; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #3a7bd9, rgba(58,123,217,0.3)); }
+  .hist-bar { width: 100%; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, var(--accent-light), rgba(63,107,52,0.28)); }
   .hist-x { font-size: 10.5px; color: var(--text-faint); font-weight: 500; }
   .stat-row { display: flex; gap: 26px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
   .stat { }
@@ -310,24 +315,24 @@
 
   <div class="page-title">
     <h1>Clinic at a glance</h1>
-    <p>Two questions, answered before you scroll — are we full, and is the funnel healthy?</p>
+    <p>Two questions, answered before you scroll — is the funnel healthy, and are we full?</p>
   </div>
 
-  <!-- ====================== BAND 1 — SUPPLY ====================== -->
-  <div class="section-head">
-    <h2>Supply</h2>
-    <span class="q">“<b>Are we full?</b>” — clinician capacity &amp; weeks to capacity</span>
-  </div>
-
-  <div class="supply-grid" id="supplyGrid"><!-- injected --></div>
-
-  <!-- ====================== BAND 2 — DEMAND ====================== -->
+  <!-- ====================== BAND 1 — DEMAND ====================== -->
   <div class="section-head">
     <h2>Demand</h2>
     <span class="q">“<b>Is the funnel healthy?</b>” — top-of-funnel &amp; conversion vs last period</span>
   </div>
 
   <div class="kpi-grid" id="kpiGrid"><!-- injected --></div>
+
+  <!-- ====================== BAND 2 — SUPPLY ====================== -->
+  <div class="section-head">
+    <h2>Supply</h2>
+    <span class="q">“<b>Are we full?</b>” — clinician capacity &amp; weeks to capacity</span>
+  </div>
+
+  <div class="supply-grid" id="supplyGrid"><!-- injected --></div>
 
   <!-- ====================== NEEDS ATTENTION ====================== -->
   <div class="attention" id="attention">
@@ -525,11 +530,11 @@
 
   // booking lead time per NP, days, over 8 weeks
   const LEAD = {
-    "Penton":   { color: "#ff5d6c", d: [9,11,12,14,15,17,19,21] },
-    "Oostwoud": { color: "#f5b948", d: [8,9,11,12,13,14,16,18] },
-    "Dufour":   { color: "#6ea8ff", d: [6,7,7,8,9,9,10,11] },
-    "Xu":       { color: "#2fd07a", d: [4,4,5,5,4,6,5,6] },
-    "Santos":   { color: "#a78bfa", d: [2,2,3,3,4,4,5,5] },
+    "Penton":   { color: "#e04652", d: [9,11,12,14,15,17,19,21] },
+    "Oostwoud": { color: "#c0860a", d: [8,9,11,12,13,14,16,18] },
+    "Dufour":   { color: "#2c4e25", d: [6,7,7,8,9,9,10,11] },
+    "Xu":       { color: "#2f9e44", d: [4,4,5,5,4,6,5,6] },
+    "Santos":   { color: "#2e8bc0", d: [2,2,3,3,4,4,5,5] },
   };
 
   const HIST = [ // visits/member/month distribution
@@ -548,7 +553,7 @@
   function gaugeSVG(pct, color) {
     const r = 54, c = 2 * Math.PI * r, off = c * (1 - pct / 100);
     return `<svg width="132" height="132" viewBox="0 0 132 132">
-      <circle cx="66" cy="66" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="11"/>
+      <circle cx="66" cy="66" r="${r}" fill="none" stroke="rgba(44,78,37,0.10)" stroke-width="11"/>
       <circle cx="66" cy="66" r="${r}" fill="none" stroke="${color}" stroke-width="11"
         stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"
         style="filter: drop-shadow(0 0 6px ${color}55)"/>
@@ -643,7 +648,7 @@
     let grid = "";
     for (let g = 0; g <= maxV; g += 7) {
       const yy = y(g);
-      grid += `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+      grid += `<line x1="${padL}" y1="${yy}" x2="${W - padR}" y2="${yy}" stroke="rgba(44,78,37,0.09)" stroke-width="1"/>
                <text x="6" y="${yy + 3}" fill="var(--text-faint)" font-size="9" font-family="JetBrains Mono">${g}d</text>`;
     }
     let xlabels = WEEKS.map((w, i) => `<text x="${x(i)}" y="${H - 8}" fill="var(--text-faint)" font-size="9" text-anchor="middle" font-family="Inter">${w}</text>`).join("");
@@ -669,7 +674,7 @@
       <div style="flex:1">
         <div class="rev-name">${l.name}<span>${l.note}</span></div>
         <div class="funnel-track" style="height:7px; margin-top:9px; max-width:340px">
-          <div class="funnel-fill" style="height:100%; width:${(l.val / ltvMax) * 100}%; background:linear-gradient(90deg,var(--green),#5fe09a)"></div>
+          <div class="funnel-fill" style="height:100%; width:${(l.val / ltvMax) * 100}%; background:linear-gradient(90deg,var(--accent),var(--accent-light))"></div>
         </div>
       </div>
       <div class="rev-val">$${l.val.toLocaleString()}</div>

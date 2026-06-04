@@ -57,7 +57,7 @@ See **Appendix A** for the full ID reference, including NP clinician IDs.
 
 ## 3. Tier 1 — Build Now (existing schema, no new data required)
 
-Fully buildable today. SQL starter library delivered separately (`tier1_metabase_queries.sql`).
+Fully buildable today. SQL starter library lives alongside this PRD: [`tier1_metabase_queries.sql`](./tier1_metabase_queries.sql) — runnable Metabase native queries for every metric below, with the §2 conventions baked in.
 
 | # | Metric | Source | Logic |
 |---|---|---|---|
